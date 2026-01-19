@@ -5,4 +5,17 @@ plotly
 matplotlib
 seaborn
 scipy
+scikit-learn
 openpyxl
+pymongo
+redis
+python-dotenv
+streamlit-aggrid
+streamlit-option-menu
+streamlit-extras
+altair
+pydeck
+geopy
+statsmodels
+networkx
+joblib
