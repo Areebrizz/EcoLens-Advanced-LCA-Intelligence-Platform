@@ -2445,8 +2445,8 @@ def generate_academic_report(report_type, citation_style, selected_products,
             include_visualizations
         )
         
-        # Create downloadable files
-        create_downloadable_report(report_content, report_type)
+        # Create downloadable files - PASS selected_products
+        create_downloadable_report(report_content, report_type, selected_products)
 
 def generate_report_content(report_type, citation_style, selected_products,
                           include_sections, add_peer_review, include_data,
@@ -2495,6 +2495,9 @@ def generate_report_content(report_type, citation_style, selected_products,
     
     # 3. Create executive summary
     content['summary'] = generate_executive_summary(selected_products)
+    
+    # 4. Store selected_products for CSV generation
+    content['selected_products_list'] = selected_products
     
     return content
 
@@ -2682,7 +2685,7 @@ def generate_executive_summary(selected_products):
     
     return summary
 
-def create_downloadable_report(content, report_type):
+def create_downloadable_report(content, report_type, selected_products):
     """Create downloadable report files"""
     
     # Create a success message with download options
@@ -2721,17 +2724,18 @@ def create_downloadable_report(content, report_type):
     
     with col3:
         # Executive summary download
-        summary_file = content.get('summary', 'Executive summary').encode('utf-8')
-        st.download_button(
-            label="📊 Executive Summary",
-            data=summary_file,
-            file_name=f"LCA_Executive_Summary_{datetime.now().strftime('%Y%m%d')}.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
+        if 'summary' in content:
+            summary_file = content['summary'].encode('utf-8')
+            st.download_button(
+                label="📊 Executive Summary",
+                data=summary_file,
+                file_name=f"LCA_Executive_Summary_{datetime.now().strftime('%Y%m%d')}.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
     
     # Additional data downloads
-    if 'data' in content:
+    if 'data' in content and selected_products:
         st.markdown("#### 📊 Data Files")
         col1, col2 = st.columns(2)
         
@@ -2747,12 +2751,12 @@ def create_downloadable_report(content, report_type):
         
         with col2:
             # Create a simple CSV
-            csv_data = "Product, Carbon, Circularity, Energy, Water\n"
+            csv_data = "Product, Carbon (kg CO₂e), Circularity, Energy (MJ), Water (L), Material, Mass (kg)\n"
             for product_id in selected_products:
                 prod_id = product_id.split('(')[-1].strip(')')
                 product = next((p for p in st.session_state.demo_products if p['id'] == prod_id), None)
                 if product:
-                    csv_data += f"{product['name']}, {product['carbon']}, {product['circularity']}, {product['energy']}, {product['water']}\n"
+                    csv_data += f'"{product["name"]}", {product["carbon"]}, {product["circularity"]}, {product["energy"]}, {product["water"]}, "{product["material"]}", {product["mass"]}\n'
             
             st.download_button(
                 label="📊 Download as CSV",
@@ -2808,7 +2812,6 @@ def show_export_options():
             
             if st.button("Poster Template", use_container_width=True):
                 st.info("Academic poster template for conferences downloaded.")
-
 # ============================================================================
 # MAIN APPLICATION FLOW
 # ============================================================================
