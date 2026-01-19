@@ -1264,8 +1264,8 @@ def show_professional_dashboard_tab():
         # Carbon footprint over time
         st.markdown("#### Carbon Footprint Trend")
         
-        # Generate time series data
-        dates = pd.date_range(start='2023-07-01', end='2024-01-20', freq='M')
+        # Generate time series data - FIXED: Ensure arrays have same length
+        dates = pd.date_range(start='2023-07-01', end='2024-01-01', periods=7)
         carbon_data = pd.DataFrame({
             'Date': dates,
             'Carbon (kg)': [25, 22, 20, 18, 16, 15, 13.2],
