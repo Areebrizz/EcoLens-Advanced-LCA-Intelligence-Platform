@@ -1,5 +1,5 @@
 # ============================================================================
-# ECO LENS: PROFESSIONAL LCA PLATFORM WITH ADVANCED ANALYTICS
+# ECO LENS: PROFESSIONAL LCA PLATFORM WITH ADVANCED ANALYTICS - FIXED VERSION
 # ============================================================================
 import streamlit as st
 import pandas as pd
@@ -758,6 +758,24 @@ def create_product_card(product):
         'Needs Update': 'tag-yellow'
     }.get(product['status'], 'tag-blue')
     
+    # Format the metrics grid
+    metrics_grid = f"""
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+        <div>
+            <div class="metric-label">Carbon</div>
+            <div class="metric-medium">{product['carbon']} kg</div>
+        </div>
+        <div>
+            <div class="metric-label">Circularity</div>
+            <div class="metric-medium">{product['circularity']}</div>
+        </div>
+        <div>
+            <div class="metric-label">EPD</div>
+            <div class="metric-medium">{"✅" if product['epd_ready'] else "❌"}</div>
+        </div>
+    </div>
+    """
+    
     return f"""
     <div class="product-card">
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
@@ -768,20 +786,7 @@ def create_product_card(product):
             <div class="status-tag {status_color}">{product['status']}</div>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
-            <div>
-                <div class="metric-label">Carbon</div>
-                <div class="metric-medium">{product['carbon']} kg</div>
-            </div>
-            <div>
-                <div class="metric-label">Circularity</div>
-                <div class="metric-medium">{product['circularity']}</div>
-            </div>
-            <div>
-                <div class="metric-label">EPD</div>
-                <div class="metric-medium">{"✅" if product['epd_ready'] else "❌"}</div>
-            </div>
-        </div>
+        {metrics_grid}
         
         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #9CA3AF;">
             <span>ID: {product['id']}</span>
@@ -936,8 +941,181 @@ def show_organization_step():
                 st.session_state.onboarding_step = 2
                 st.rerun()
 
+def show_role_selection():
+    """Show role selection step"""
+    st.markdown('<h2 style="color: #1E3A8A; text-align: center;">🎯 Choose Your Role</h2>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; color: #6B7280; margin-bottom: 3rem;">Select the option that best describes your work:</p>', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    roles = [
+        {
+            "icon": "👨‍💼",
+            "title": "Sustainability Manager",
+            "description": "Carbon accounting, reporting, and strategy",
+            "key": "sustainability"
+        },
+        {
+            "icon": "👩‍🔬", 
+            "title": "Product Engineer",
+            "description": "Material selection and design optimization",
+            "key": "engineer"
+        },
+        {
+            "icon": "🔬",
+            "title": "Researcher/Academic",
+            "description": "Academic studies and methodology",
+            "key": "researcher"
+        }
+    ]
+    
+    for i, role in enumerate(roles):
+        with [col1, col2, col3][i]:
+            with st.container():
+                st.markdown(f"""
+                <div class="feature-card" style="cursor: pointer; text-align: center; padding: 1.5rem; border-radius: 12px; border: 1px solid #E5E7EB; background: white;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">{role['icon']}</div>
+                    <h3 style="color: #1E3A8A; margin-bottom: 0.5rem;">{role['title']}</h3>
+                    <p style="color: #6B7280; font-size: 0.9rem;">{role['description']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button(f"Select {role['title']}", key=f"role_{i}", use_container_width=True):
+                    st.session_state.user_role = role['key']
+                    st.session_state.onboarding_step = 3
+                    st.rerun()
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("← Back", use_container_width=True):
+            st.session_state.onboarding_step = 1
+            st.rerun()
+    
+    with col2:
+        if st.button("Skip →", use_container_width=True):
+            st.session_state.onboarding_step = 3
+            st.rerun()
+
+def show_mode_selection():
+    """Show interface mode selection"""
+    st.markdown('<h2 style="color: #1E3A8A; text-align: center;">🎨 Choose Your Interface</h2>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; color: #6B7280; margin-bottom: 3rem;">Select how you want to use EcoLens:</p>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div style="background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #E5E7EB; text-align: center; height: 100%;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+            <h3 style="color: #1E3A8A;">Guided Mode</h3>
+            <p style="color: #6B7280; font-size: 0.9rem;">
+            <strong>Perfect for beginners</strong><br>
+            Step-by-step workflows<br>
+            Pre-filled templates<br>
+            Automated recommendations
+            </p>
+            <div style="margin-top: 1rem; padding: 0.5rem; background: #D1FAE5; border-radius: 8px;">
+                <small>Recommended for new users</small>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("Use Guided Mode", key="guided_mode", type="primary", use_container_width=True):
+            st.session_state.interface_mode = "guided"
+            st.session_state.onboarding_step = 4
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div style="background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #E5E7EB; text-align: center; height: 100%;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+            <h3 style="color: #1E3A8A;">Professional Mode</h3>
+            <p style="color: #6B7280; font-size: 0.9rem;">
+            <strong>For experienced users</strong><br>
+            Full control & customization<br>
+            Advanced analytics<br>
+            Direct database access
+            </p>
+            <div style="margin-top: 1rem; padding: 0.5rem; background: #DBEAFE; border-radius: 8px;">
+                <small>For LCA experts</small>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("Use Professional Mode", key="professional_mode", use_container_width=True):
+            st.session_state.interface_mode = "professional"
+            st.session_state.onboarding_step = 4
+            st.rerun()
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("← Back", use_container_width=True):
+            st.session_state.onboarding_step = 2
+            st.rerun()
+
+def show_get_started():
+    """Show get started step"""
+    st.markdown('<h2 style="color: #1E3A8A; text-align: center;">🎉 Ready to Start!</h2>', unsafe_allow_html=True)
+    
+    user_role = st.session_state.user_role or "User"
+    interface_mode = st.session_state.interface_mode or "guided"
+    
+    role_names = {
+        "sustainability": "Sustainability Manager",
+        "engineer": "Product Engineer", 
+        "researcher": "Researcher"
+    }
+    
+    role_name = role_names.get(user_role, "User")
+    
+    st.markdown(f"""
+    <div style="text-align: center; padding: 2rem;">
+        <div style="font-size: 4rem; color: #10B981; margin-bottom: 1rem;">✅</div>
+        <h3 style="color: #1E3A8A;">Perfect! You're all set.</h3>
+        <p style="color: #6B7280; font-size: 1.1rem;">
+        Role: <strong>{role_name}</strong><br>
+        Interface: <strong>{interface_mode.title()} Mode</strong>
+        </p>
+        <p style="color: #6B7280; margin-top: 2rem;">
+        Start analyzing products or explore the features below.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Quick start options
+    st.markdown("### 🚀 Quick Start Options")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("Quick Assessment", type="primary", use_container_width=True):
+            st.session_state.current_workflow = "quick"
+            st.session_state.onboarding_complete = True
+            st.session_state.show_onboarding = False
+            st.rerun()
+    
+    with col2:
+        if st.button("Explore Features", use_container_width=True):
+            st.session_state.onboarding_complete = True
+            st.session_state.show_onboarding = False
+            st.rerun()
+    
+    with col3:
+        if st.button("View Tutorial", use_container_width=True):
+            st.info("Tutorial coming soon!")
+    
+    st.markdown("---")
+    
+    if st.button("← Back to Mode Selection", use_container_width=True):
+        st.session_state.onboarding_step = 3
+        st.rerun()
+
 # ============================================================================
-# GUIDED DASHBOARD WITH TILES
+# GUIDED DASHBOARD WITH TILES - FIXED VERSION
 # ============================================================================
 
 def show_guided_dashboard():
@@ -2276,7 +2454,7 @@ def show_academic_tab():
             st.info("📄 Report includes: Methodology description, statistical analysis, uncertainty quantification, and ISO compliance statement")
 
 # ============================================================================
-# MAIN APPLICATION FLOW
+# MAIN APPLICATION FLOW - FIXED
 # ============================================================================
 
 def main():
@@ -2291,7 +2469,11 @@ def main():
     current_workflow = st.session_state.current_workflow
     
     if current_workflow == "quick":
-        show_quick_assessment_workflow()
+        # Simplified quick assessment for now
+        st.info("Quick assessment workflow coming soon!")
+        if st.button("Back to Dashboard"):
+            st.session_state.current_workflow = None
+            st.rerun()
     elif current_workflow == "detailed":
         show_professional_analyzer_tab()
     elif current_workflow == "compare":
@@ -2305,19 +2487,17 @@ def main():
         else:
             show_professional_dashboard()
     
-    # Enhanced sidebar
+    # Enhanced sidebar - FIXED: Simplified to avoid formatting errors
     with st.sidebar:
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 1rem;">
-            <h3 style="color: #1E3A8A; margin-bottom: 0.25rem;">🌍 EcoLens Pro</h3>
-            <div style="background: {'#DBEAFE' if st.session_state.interface_mode == 'guided' else '#D1FAE5'}; 
-                        color: {'#1E40AF' if st.session_state.interface_mode == 'guided' else '#065F46'}; 
-                        padding: 0.25rem 0.75rem; border-radius: 12px; 
-                        display: inline-block; font-size: 0.8rem; font-weight: 600;">
-                {mode} Mode
-            </div>
-        </div>
-        """.format(mode=st.session_state.interface_mode.title()), unsafe_allow_html=True)
+        # Simple title without complex formatting
+        st.markdown("### 🌍 EcoLens Pro")
+        
+        # Mode indicator
+        interface_mode = st.session_state.interface_mode
+        if interface_mode == "guided":
+            st.success("**Guided Mode**")
+        else:
+            st.info("**Professional Mode**")
         
         st.divider()
         
@@ -2371,8 +2551,7 @@ def main():
             st.metric("Active", len(st.session_state.demo_products))
         
         # Database status
-        db_status = "🟢 Online"
-        st.caption(f"Database: {db_status}")
+        st.caption("Database: 🟢 Online")
         
         st.divider()
         
@@ -2380,11 +2559,11 @@ def main():
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("⚙️", help="Settings", use_container_width=True):
+            if st.button("⚙️ Settings", use_container_width=True):
                 st.info("Settings panel coming soon!")
         
         with col2:
-            if st.button("?", help="Help", use_container_width=True):
+            if st.button("❓ Help", use_container_width=True):
                 st.info("Help resources coming soon!")
         
         # Reset onboarding
