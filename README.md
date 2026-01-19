@@ -1,9 +1,4 @@
-<think>
-First, the user wants to convert the provided text into a .md README code. The text is a detailed description of the EcoLens project, structured like a README file for a GitHub repository.
-
-
-## Converting to README.
-</think># EcoLens: Advanced LCA Intelligence Platform
+# EcoLens: Advanced LCA Intelligence Platform
 
 ## 📋 Project Overview
 EcoLens is a professional-grade Life Cycle Assessment (LCA) platform built with Streamlit that provides academic-level environmental impact analysis with ISO 14040/44 compliance. The platform bridges the gap between complex LCA methodologies and practical sustainability decision-making by offering both guided workflows for beginners and advanced analytical tools for experts.
