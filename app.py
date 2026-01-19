@@ -224,6 +224,39 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     
+    .product-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .product-card-title {
+        color: #1E3A8A;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .product-card-subtitle {
+        color: #6B7280;
+        font-size: 0.9rem;
+        margin: 0.25rem 0;
+    }
+    
+    .product-card-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .product-card-footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #9CA3AF;
+    }
+    
     /* Progress bars */
     .progress-container {
         background: #E5E7EB;
@@ -692,140 +725,130 @@ class AdvancedLCAEngine:
         }
 
 # ============================================================================
-# DASHBOARD COMPONENTS WITH TILES
+# DASHBOARD COMPONENTS WITH TILES - FIXED VERSION
 # ============================================================================
 
-def create_metric_tile(title, value, change=None, icon="📊", subtitle=""):
-    """Create a metric tile for dashboard"""
-    change_html = ""
-    if change is not None:
-        change_class = "metric-change-positive" if change >= 0 else "metric-change-negative"
-        change_sign = "+" if change >= 0 else ""
-        change_html = f'<div class="{change_class}">{change_sign}{change}%</div>'
-    
-    return f"""
-    <div class="dashboard-tile metric-tile">
-        <div class="tile-header">
-            <span style="font-size: 1.5rem;">{icon}</span>
-            <span>{title}</span>
-        </div>
-        <div class="metric-large">{value}</div>
-        {change_html}
-        {f'<div class="metric-label">{subtitle}</div>' if subtitle else ''}
-    </div>
-    """
+def display_metric_tile(title, value, change=None, icon="📊", subtitle=""):
+    """Display a metric tile for dashboard"""
+    with st.container():
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown(f"<div style='font-size: 2rem;'>{icon}</div>", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"<div style='font-size: 1.1rem; color: #1E3A8A; font-weight: bold;'>{title}</div>", unsafe_allow_html=True)
+        
+        st.markdown(f"<div style='font-size: 2.5rem; font-weight: bold; color: #1E3A8A; margin: 0.5rem 0;'>{value}</div>", unsafe_allow_html=True)
+        
+        if change is not None:
+            change_color = "#10B981" if change >= 0 else "#EF4444"
+            change_sign = "+" if change >= 0 else ""
+            st.markdown(f"<div style='color: {change_color}; font-weight: bold;'>{change_sign}{change}%</div>", unsafe_allow_html=True)
+        
+        if subtitle:
+            st.markdown(f"<div style='font-size: 0.8rem; color: #6B7280; margin-top: 0.25rem;'>{subtitle}</div>", unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
-def create_insight_tile(title, content, insights, icon="💡"):
-    """Create an insight tile"""
-    insights_html = "".join([f'<li>{insight}</li>' for insight in insights])
-    
-    return f"""
-    <div class="dashboard-tile insight-tile">
-        <div class="tile-header">
-            <span style="font-size: 1.5rem;">{icon}</span>
-            <span>{title}</span>
-        </div>
-        <p style="color: #374151; margin-bottom: 1rem;">{content}</p>
-        <ul style="color: #4B5563; padding-left: 1rem; margin: 0;">
-            {insights_html}
-        </ul>
-    </div>
-    """
-
-def create_warning_tile(title, warning, actions, icon="⚠️"):
-    """Create a warning/action tile"""
-    actions_html = "".join([f'<li>{action}</li>' for action in actions])
-    
-    return f"""
-    <div class="dashboard-tile warning-tile">
-        <div class="tile-header">
-            <span style="font-size: 1.5rem;">{icon}</span>
-            <span>{title}</span>
-        </div>
-        <p style="color: #92400E; margin-bottom: 1rem;"><strong>{warning}</strong></p>
-        <div style="color: #92400E; font-size: 0.9rem;">Recommended actions:</div>
-        <ul style="color: #92400E; padding-left: 1rem; margin: 0; font-size: 0.9rem;">
-            {actions_html}
-        </ul>
-    </div>
-    """
-
-def create_product_card(product):
-    """Create a product card for listings"""
-    status_color = {
-        'Completed': 'tag-green',
-        'In Review': 'tag-blue',
-        'Needs Update': 'tag-yellow'
-    }.get(product['status'], 'tag-blue')
-    
-    # Format the metrics grid
-    metrics_grid = f"""
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
-        <div>
-            <div class="metric-label">Carbon</div>
-            <div class="metric-medium">{product['carbon']} kg</div>
-        </div>
-        <div>
-            <div class="metric-label">Circularity</div>
-            <div class="metric-medium">{product['circularity']}</div>
-        </div>
-        <div>
-            <div class="metric-label">EPD</div>
-            <div class="metric-medium">{"✅" if product['epd_ready'] else "❌"}</div>
-        </div>
-    </div>
-    """
-    
-    return f"""
-    <div class="product-card">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
-            <div>
-                <h4 style="color: #1E3A8A; margin: 0;">{product['name']}</h4>
-                <p style="color: #6B7280; font-size: 0.9rem; margin: 0.25rem 0;">{product['type']} • {product['material']}</p>
+def display_insight_tile(title, content, insights, icon="💡"):
+    """Display an insight tile"""
+    with st.container():
+        st.markdown(f"""
+        <div style='background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%); 
+                    border-radius: 12px; padding: 1.5rem; border-left: 5px solid #10B981; 
+                    margin-bottom: 1rem;'>
+            <div style='display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;'>
+                <span style='font-size: 1.5rem;'>{icon}</span>
+                <span style='font-size: 1.1rem; color: #1E3A8A; font-weight: bold;'>{title}</span>
             </div>
-            <div class="status-tag {status_color}">{product['status']}</div>
-        </div>
+            <p style='color: #374151; margin-bottom: 1rem;'>{content}</p>
+            <ul style='color: #4B5563; padding-left: 1rem; margin: 0;'>
+        """, unsafe_allow_html=True)
         
-        {metrics_grid}
+        for insight in insights:
+            st.markdown(f"<li>{insight}</li>", unsafe_allow_html=True)
         
-        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #9CA3AF;">
-            <span>ID: {product['id']}</span>
-            <span>{product['date']}</span>
-        </div>
-    </div>
-    """
+        st.markdown("</ul></div>", unsafe_allow_html=True)
+
+def display_warning_tile(title, warning, actions, icon="⚠️"):
+    """Display a warning/action tile"""
+    with st.container():
+        st.markdown(f"""
+        <div style='background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); 
+                    border-radius: 12px; padding: 1.5rem; border-left: 5px solid #F59E0B; 
+                    margin-bottom: 1rem;'>
+            <div style='display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;'>
+                <span style='font-size: 1.5rem;'>{icon}</span>
+                <span style='font-size: 1.1rem; color: #92400E; font-weight: bold;'>{title}</span>
+            </div>
+            <p style='color: #92400E; margin-bottom: 1rem;'><strong>{warning}</strong></p>
+            <div style='color: #92400E; font-size: 0.9rem; margin-bottom: 0.5rem;'>Recommended actions:</div>
+            <ul style='color: #92400E; padding-left: 1rem; margin: 0; font-size: 0.9rem;'>
+        """, unsafe_allow_html=True)
+        
+        for action in actions:
+            st.markdown(f"<li>{action}</li>", unsafe_allow_html=True)
+        
+        st.markdown("</ul></div>", unsafe_allow_html=True)
+
+def display_product_card(product):
+    """Display a product card for listings using Streamlit components"""
+    with st.container():
+        # Create columns for layout
+        col1, col2 = st.columns([4, 1])
+        
+        with col1:
+            st.markdown(f"**{product['name']}**")
+            st.caption(f"{product['type']} • {product['material']}")
+        
+        with col2:
+            status_color = {
+                'Completed': ('✅', 'green'),
+                'In Review': ('🔄', 'blue'),
+                'Needs Update': ('⚠️', 'orange')
+            }.get(product['status'], ('📝', 'gray'))
+            
+            st.markdown(f"{status_color[0]} **{product['status']}**")
+        
+        # Metrics in columns
+        metric_cols = st.columns(3)
+        with metric_cols[0]:
+            st.metric("Carbon", f"{product['carbon']} kg")
+        with metric_cols[1]:
+            st.metric("Circularity", f"{product['circularity']}")
+        with metric_cols[2]:
+            epd_status = "✅" if product['epd_ready'] else "❌"
+            st.metric("EPD", epd_status)
+        
+        # Footer with ID and date
+        footer_cols = st.columns(2)
+        with footer_cols[0]:
+            st.caption(f"ID: {product['id']}")
+        with footer_cols[1]:
+            st.caption(product['date'])
+        
+        st.divider()
 
 # ============================================================================
-# ONBOARDING COMPONENTS (Enhanced)
+# ONBOARDING COMPONENTS
 # ============================================================================
 
 def show_onboarding():
     """Show step-by-step onboarding"""
     
-    steps = [
-        "Welcome",
-        "Organization", 
-        "Choose Role",
-        "Select Mode",
-        "Get Started"
-    ]
+    steps = ["Welcome", "Organization", "Choose Role", "Select Mode", "Get Started"]
     
     # Step indicator
     cols = st.columns(len(steps))
-    
     for i, step in enumerate(steps):
         with cols[i]:
-            circle_class = "step-completed" if i < st.session_state.onboarding_step else "step-active" if i == st.session_state.onboarding_step else "step-inactive"
-            st.markdown(f"""
-            <div class="step">
-                <div class="step-circle {circle_class}">{i+1}</div>
-                <div style="font-size: 0.9rem; color: {'#3B82F6' if i == st.session_state.onboarding_step else '#6B7280'}">
-                    {step}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            if i < st.session_state.onboarding_step:
+                st.success(f"✓ {step}")
+            elif i == st.session_state.onboarding_step:
+                st.info(f"▶ {step}")
+            else:
+                st.write(f"{i+1}. {step}")
     
-    st.markdown("---")
+    st.divider()
     
     # Step content
     if st.session_state.onboarding_step == 0:
@@ -847,26 +870,18 @@ def show_welcome_step():
     
     with col1:
         st.markdown("""
-        <div style="padding: 2rem 0;">
-            <h2 style="color: #1E3A8A;">Academic-Grade LCA Platform</h2>
-            <p style="font-size: 1.1rem; color: #4B5563; line-height: 1.6;">
-                ISO 14040/44 compliant Life Cycle Assessment with statistical analysis, 
-                uncertainty quantification, and academic rigor for defensible sustainability reporting.
-            </p>
-            
-            <div style="background: #EFF6FF; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem;">
-                <h4 style="color: #1E40AF; margin-top: 0;">🎯 Key Features:</h4>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                    <div style="color: #4B5563;">• Monte Carlo Uncertainty</div>
-                    <div style="color: #4B5563;">• Statistical Comparison</div>
-                    <div style="color: #4B5563;">• EPD Generation Ready</div>
-                    <div style="color: #4B5563;">• Sensitivity Analysis</div>
-                    <div style="color: #4B5563;">• Academic Database</div>
-                    <div style="color: #4B5563;">• ISO Compliance Checks</div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        ## Academic-Grade LCA Platform
+        ISO 14040/44 compliant Life Cycle Assessment with statistical analysis, 
+        uncertainty quantification, and academic rigor for defensible sustainability reporting.
+        
+        ### 🎯 Key Features:
+        - Monte Carlo Uncertainty
+        - Statistical Comparison
+        - EPD Generation Ready
+        - Sensitivity Analysis
+        - Academic Database
+        - ISO Compliance Checks
+        """)
     
     with col2:
         st.markdown("""
@@ -881,7 +896,7 @@ def show_welcome_step():
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown("---")
+    st.divider()
     
     col1, col2 = st.columns(2)
     with col1:
@@ -897,7 +912,7 @@ def show_welcome_step():
 
 def show_organization_step():
     """Organization information step"""
-    st.markdown('<h2 style="color: #1E3A8A; text-align: center;">🏢 Organization Profile</h2>', unsafe_allow_html=True)
+    st.markdown("## 🏢 Organization Profile")
     
     with st.form("organization_form"):
         col1, col2 = st.columns(2)
@@ -926,7 +941,7 @@ def show_organization_step():
              "Product Environmental Footprint (PEF)", "Other Standards"]
         )
         
-        st.markdown("---")
+        st.divider()
         
         col1, col2 = st.columns(2)
         with col1:
@@ -943,49 +958,28 @@ def show_organization_step():
 
 def show_role_selection():
     """Show role selection step"""
-    st.markdown('<h2 style="color: #1E3A8A; text-align: center;">🎯 Choose Your Role</h2>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; color: #6B7280; margin-bottom: 3rem;">Select the option that best describes your work:</p>', unsafe_allow_html=True)
+    st.markdown("## 🎯 Choose Your Role")
+    st.markdown("Select the option that best describes your work:")
     
     col1, col2, col3 = st.columns(3)
     
     roles = [
-        {
-            "icon": "👨‍💼",
-            "title": "Sustainability Manager",
-            "description": "Carbon accounting, reporting, and strategy",
-            "key": "sustainability"
-        },
-        {
-            "icon": "👩‍🔬", 
-            "title": "Product Engineer",
-            "description": "Material selection and design optimization",
-            "key": "engineer"
-        },
-        {
-            "icon": "🔬",
-            "title": "Researcher/Academic",
-            "description": "Academic studies and methodology",
-            "key": "researcher"
-        }
+        {"icon": "👨‍💼", "title": "Sustainability Manager", "description": "Carbon accounting, reporting, and strategy", "key": "sustainability"},
+        {"icon": "👩‍🔬", "title": "Product Engineer", "description": "Material selection and design optimization", "key": "engineer"},
+        {"icon": "🔬", "title": "Researcher/Academic", "description": "Academic studies and methodology", "key": "researcher"}
     ]
     
     for i, role in enumerate(roles):
         with [col1, col2, col3][i]:
-            with st.container():
-                st.markdown(f"""
-                <div class="feature-card" style="cursor: pointer; text-align: center; padding: 1.5rem; border-radius: 12px; border: 1px solid #E5E7EB; background: white;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">{role['icon']}</div>
-                    <h3 style="color: #1E3A8A; margin-bottom: 0.5rem;">{role['title']}</h3>
-                    <p style="color: #6B7280; font-size: 0.9rem;">{role['description']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if st.button(f"Select {role['title']}", key=f"role_{i}", use_container_width=True):
-                    st.session_state.user_role = role['key']
-                    st.session_state.onboarding_step = 3
-                    st.rerun()
+            if st.button(f"{role['icon']}\n\n**{role['title']}**\n\n{role['description']}", 
+                        key=f"role_{i}", 
+                        use_container_width=True,
+                        help=f"Select {role['title']}"):
+                st.session_state.user_role = role['key']
+                st.session_state.onboarding_step = 3
+                st.rerun()
     
-    st.markdown("---")
+    st.divider()
     
     col1, col2 = st.columns(2)
     with col1:
@@ -1000,27 +994,18 @@ def show_role_selection():
 
 def show_mode_selection():
     """Show interface mode selection"""
-    st.markdown('<h2 style="color: #1E3A8A; text-align: center;">🎨 Choose Your Interface</h2>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; color: #6B7280; margin-bottom: 3rem;">Select how you want to use EcoLens:</p>', unsafe_allow_html=True)
+    st.markdown("## 🎨 Choose Your Interface")
+    st.markdown("Select how you want to use EcoLens:")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
-        <div style="background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #E5E7EB; text-align: center; height: 100%;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
-            <h3 style="color: #1E3A8A;">Guided Mode</h3>
-            <p style="color: #6B7280; font-size: 0.9rem;">
-            <strong>Perfect for beginners</strong><br>
-            Step-by-step workflows<br>
-            Pre-filled templates<br>
-            Automated recommendations
-            </p>
-            <div style="margin-top: 1rem; padding: 0.5rem; background: #D1FAE5; border-radius: 8px;">
-                <small>Recommended for new users</small>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("### 🚀 Guided Mode")
+        st.markdown("**Perfect for beginners**")
+        st.markdown("• Step-by-step workflows")
+        st.markdown("• Pre-filled templates")
+        st.markdown("• Automated recommendations")
+        st.success("Recommended for new users")
         
         if st.button("Use Guided Mode", key="guided_mode", type="primary", use_container_width=True):
             st.session_state.interface_mode = "guided"
@@ -1028,38 +1013,27 @@ def show_mode_selection():
             st.rerun()
     
     with col2:
-        st.markdown("""
-        <div style="background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #E5E7EB; text-align: center; height: 100%;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
-            <h3 style="color: #1E3A8A;">Professional Mode</h3>
-            <p style="color: #6B7280; font-size: 0.9rem;">
-            <strong>For experienced users</strong><br>
-            Full control & customization<br>
-            Advanced analytics<br>
-            Direct database access
-            </p>
-            <div style="margin-top: 1rem; padding: 0.5rem; background: #DBEAFE; border-radius: 8px;">
-                <small>For LCA experts</small>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("### ⚡ Professional Mode")
+        st.markdown("**For experienced users**")
+        st.markdown("• Full control & customization")
+        st.markdown("• Advanced analytics")
+        st.markdown("• Direct database access")
+        st.info("For LCA experts")
         
         if st.button("Use Professional Mode", key="professional_mode", use_container_width=True):
             st.session_state.interface_mode = "professional"
             st.session_state.onboarding_step = 4
             st.rerun()
     
-    st.markdown("---")
+    st.divider()
     
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("← Back", use_container_width=True):
-            st.session_state.onboarding_step = 2
-            st.rerun()
+    if st.button("← Back", use_container_width=True):
+        st.session_state.onboarding_step = 2
+        st.rerun()
 
 def show_get_started():
     """Show get started step"""
-    st.markdown('<h2 style="color: #1E3A8A; text-align: center;">🎉 Ready to Start!</h2>', unsafe_allow_html=True)
+    st.markdown("## 🎉 Ready to Start!")
     
     user_role = st.session_state.user_role or "User"
     interface_mode = st.session_state.interface_mode or "guided"
@@ -1072,19 +1046,14 @@ def show_get_started():
     
     role_name = role_names.get(user_role, "User")
     
-    st.markdown(f"""
-    <div style="text-align: center; padding: 2rem;">
-        <div style="font-size: 4rem; color: #10B981; margin-bottom: 1rem;">✅</div>
-        <h3 style="color: #1E3A8A;">Perfect! You're all set.</h3>
-        <p style="color: #6B7280; font-size: 1.1rem;">
-        Role: <strong>{role_name}</strong><br>
-        Interface: <strong>{interface_mode.title()} Mode</strong>
-        </p>
-        <p style="color: #6B7280; margin-top: 2rem;">
-        Start analyzing products or explore the features below.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.success(f"""
+    **Perfect! You're all set.**
+    
+    Role: **{role_name}**
+    Interface: **{interface_mode.title()} Mode**
+    
+    Start analyzing products or explore the features below.
+    """)
     
     # Quick start options
     st.markdown("### 🚀 Quick Start Options")
@@ -1108,14 +1077,14 @@ def show_get_started():
         if st.button("View Tutorial", use_container_width=True):
             st.info("Tutorial coming soon!")
     
-    st.markdown("---")
+    st.divider()
     
     if st.button("← Back to Mode Selection", use_container_width=True):
         st.session_state.onboarding_step = 3
         st.rerun()
 
 # ============================================================================
-# GUIDED DASHBOARD WITH TILES - FIXED VERSION
+# GUIDED DASHBOARD - FIXED VERSION
 # ============================================================================
 
 def show_guided_dashboard():
@@ -1128,15 +1097,7 @@ def show_guided_dashboard():
         st.markdown('<h1 class="main-header">EcoLens Guided</h1>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
-        <div style="text-align: center;">
-            <div style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); 
-                        color: white; padding: 0.5rem 1rem; border-radius: 20px; 
-                        display: inline-block; font-weight: 600;">
-                Guided Mode
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.success("**Guided Mode**")
     
     with col3:
         if st.button("Switch to Professional", use_container_width=True):
@@ -1154,153 +1115,96 @@ def show_guided_dashboard():
     </div>
     """, unsafe_allow_html=True)
     
-    # Dashboard metrics tiles
-    st.markdown('<div class="section-header">📊 Dashboard Overview</div>', unsafe_allow_html=True)
+    # Dashboard metrics
+    st.markdown("## 📊 Dashboard Overview")
     
-    # Create metric tiles
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         total_analyses = len(st.session_state.products) + len(st.session_state.demo_products)
-        st.markdown(create_metric_tile(
-            "Total Analyses", 
-            str(total_analyses),
-            change=+12,
-            icon="📈",
-            subtitle="+2 this week"
-        ), unsafe_allow_html=True)
+        st.metric("Total Analyses", str(total_analyses), delta="+2 this week", delta_color="normal")
     
     with col2:
         avg_carbon = np.mean([p['carbon'] for p in st.session_state.demo_products])
-        st.markdown(create_metric_tile(
-            "Avg. Carbon", 
-            f"{avg_carbon:.1f} kg",
-            change=-5,
-            icon="🌱",
-            subtitle="Per product"
-        ), unsafe_allow_html=True)
+        st.metric("Avg. Carbon", f"{avg_carbon:.1f} kg", delta="-5%", delta_color="inverse")
     
     with col3:
         avg_circularity = np.mean([p['circularity'] for p in st.session_state.demo_products])
-        st.markdown(create_metric_tile(
-            "Circularity Score", 
-            f"{avg_circularity:.2f}",
-            change=+8,
-            icon="🔄",
-            subtitle="Industry avg: 0.65"
-        ), unsafe_allow_html=True)
+        st.metric("Circularity Score", f"{avg_circularity:.2f}", delta="+8%", delta_color="normal")
     
     with col4:
         epd_ready = sum(1 for p in st.session_state.demo_products if p['epd_ready'])
-        st.markdown(create_metric_tile(
-            "EPD Ready", 
-            f"{epd_ready}/{len(st.session_state.demo_products)}",
-            change=+25,
-            icon="📄",
-            subtitle="Environmental Product Declarations"
-        ), unsafe_allow_html=True)
+        st.metric("EPD Ready", f"{epd_ready}/{len(st.session_state.demo_products)}", delta="+25%", delta_color="normal")
     
-    # Quick start tiles
-    st.markdown('<div class="section-header">🚀 Quick Start</div>', unsafe_allow_html=True)
+    # Quick start options
+    st.markdown("## 🚀 Quick Start")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
-        <div class="dashboard-tile">
-            <div class="tile-header">
-                <span style="font-size: 1.5rem;">🚀</span>
-                <span>Quick Assessment</span>
-            </div>
-            <p style="color: #6B7280; margin-bottom: 1.5rem;">
-            Get instant LCA results for common products in 3-5 minutes.
-            Perfect for initial screening and feasibility studies.
-            </p>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <span class="badge">ISO 14044</span>
-                <span class="badge">Quick Results</span>
-                <span class="badge">3-5 min</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        if st.button("Start Quick Assessment", key="quick_start", type="primary", use_container_width=True):
-            st.session_state.current_workflow = "quick"
-            st.session_state.workflow_step = 0
-            st.rerun()
+        with st.container():
+            st.markdown("### 🚀 Quick Assessment")
+            st.markdown("Get instant LCA results for common products in 3-5 minutes.")
+            st.markdown("Perfect for initial screening and feasibility studies.")
+            st.markdown("**ISO 14044 • Quick Results • 3-5 min**")
+            if st.button("Start Quick Assessment", key="quick_start", type="primary", use_container_width=True):
+                st.session_state.current_workflow = "quick"
+                st.session_state.workflow_step = 0
+                st.rerun()
     
     with col2:
-        st.markdown("""
-        <div class="dashboard-tile">
-            <div class="tile-header">
-                <span style="font-size: 1.5rem;">🔬</span>
-                <span>Advanced Analysis</span>
-            </div>
-            <p style="color: #6B7280; margin-bottom: 1.5rem;">
-            Full ISO-compliant analysis with uncertainty quantification,
-            sensitivity analysis, and academic rigor.
-            </p>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <span class="badge badge-success">ISO 14040</span>
-                <span class="badge">Monte Carlo</span>
-                <span class="badge">15-30 min</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        if st.button("Start Advanced Analysis", key="advanced_start", type="primary", use_container_width=True):
-            st.session_state.current_workflow = "detailed"
-            st.session_state.workflow_step = 0
-            st.rerun()
+        with st.container():
+            st.markdown("### 🔬 Advanced Analysis")
+            st.markdown("Full ISO-compliant analysis with uncertainty quantification.")
+            st.markdown("**ISO 14040 • Monte Carlo • 15-30 min**")
+            if st.button("Start Advanced Analysis", key="advanced_start", type="primary", use_container_width=True):
+                st.session_state.current_workflow = "detailed"
+                st.session_state.workflow_step = 0
+                st.rerun()
     
     # Recent analyses
-    st.markdown('<div class="section-header">📋 Recent Analyses</div>', unsafe_allow_html=True)
+    st.markdown("## 📋 Recent Analyses")
     
     if st.session_state.demo_products:
-        # Show last 4 analyses in a grid
-        cols = st.columns(2)
+        # Show last 4 analyses
         recent_products = st.session_state.demo_products[:4]
         
-        for i, product in enumerate(recent_products):
-            with cols[i % 2]:
-                st.markdown(create_product_card(product), unsafe_allow_html=True)
+        for product in recent_products:
+            display_product_card(product)
         
         # View all button
         if st.button("View All Analyses →", use_container_width=True):
             st.session_state.current_workflow = "view_all"
             st.rerun()
     
-    # Insight tiles
-    st.markdown('<div class="section-header">💡 Insights & Recommendations</div>', unsafe_allow_html=True)
+    # Insights and recommendations
+    st.markdown("## 💡 Insights & Recommendations")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown(create_insight_tile(
-            "Top Improvement Opportunity",
-            "Your packaging products show highest carbon reduction potential",
-            [
-                "Switch to recycled PET (30% reduction)",
-                "Optimize transport logistics",
-                "Implement design for recycling"
-            ],
-            icon="🎯"
-        ), unsafe_allow_html=True)
+        with st.container():
+            st.markdown("### 🎯 Top Improvement Opportunity")
+            st.markdown("Your packaging products show highest carbon reduction potential")
+            st.markdown("""
+            - Switch to recycled PET (30% reduction)
+            - Optimize transport logistics
+            - Implement design for recycling
+            """)
     
     with col2:
-        st.markdown(create_warning_tile(
-            "Attention Required",
-            "2 products need LCA updates for compliance",
-            [
-                "Update Coffee Cup Lid analysis",
-                "Review Smartphone Case methodology",
-                "Schedule critical review session"
-            ],
-            icon="⚠️"
-        ), unsafe_allow_html=True)
+        with st.container():
+            st.markdown("### ⚠️ Attention Required")
+            st.warning("2 products need LCA updates for compliance")
+            st.markdown("""
+            **Recommended actions:**
+            - Update Coffee Cup Lid analysis
+            - Review Smartphone Case methodology
+            - Schedule critical review session
+            """)
 
 # ============================================================================
-# PROFESSIONAL DASHBOARD WITH ADVANCED ANALYTICS
+# PROFESSIONAL DASHBOARD
 # ============================================================================
 
 def show_professional_dashboard():
@@ -1334,8 +1238,8 @@ def show_professional_dashboard():
 def show_professional_dashboard_tab():
     """Professional dashboard tab with enhanced analytics"""
     
-    # Quick stats in tiles
-    st.markdown('<div class="section-header">📈 Performance Metrics</div>', unsafe_allow_html=True)
+    # Quick stats
+    st.markdown("## 📈 Performance Metrics")
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -1352,7 +1256,7 @@ def show_professional_dashboard_tab():
         st.metric("EPD Compliance", "75%", "+5%", delta_color="normal")
     
     # Main dashboard grid
-    st.markdown('<div class="section-header">📊 Analytics Dashboard</div>', unsafe_allow_html=True)
+    st.markdown("## 📊 Analytics Dashboard")
     
     col1, col2 = st.columns([2, 1])
     
@@ -1426,7 +1330,7 @@ def show_professional_dashboard_tab():
         st.plotly_chart(fig, use_container_width=True)
     
     # Product portfolio
-    st.markdown('<div class="section-header">📦 Product Portfolio</div>', unsafe_allow_html=True)
+    st.markdown("## 📦 Product Portfolio")
     
     if st.session_state.demo_products:
         # Create dataframe for visualization
@@ -1477,7 +1381,7 @@ def show_professional_dashboard_tab():
 def show_professional_analyzer_tab():
     """Professional analyzer tab with advanced features"""
     
-    st.markdown('<div class="section-header">🧪 Advanced LCA Analyzer</div>', unsafe_allow_html=True)
+    st.markdown("## 🧪 Advanced LCA Analyzer")
     
     with st.expander("⚙️ Analysis Configuration", expanded=True):
         col1, col2 = st.columns(2)
@@ -1535,7 +1439,7 @@ def show_professional_analyzer_tab():
             recycling_rate = st.slider("Expected Recycling Rate (%)", 0.0, 100.0, 50.0, 5.0) / 100
             landfill_rate = st.slider("Landfill Rate (%)", 0.0, 100.0, 30.0, 5.0) / 100
     
-    st.markdown("---")
+    st.divider()
     
     col1, col2, col3 = st.columns([1, 1, 2])
     
@@ -1592,7 +1496,7 @@ def show_professional_analyzer_tab():
 def show_advanced_results(results, product_data):
     """Display advanced LCA results"""
     
-    st.markdown('<div class="section-header">📊 Advanced Analysis Results</div>', unsafe_allow_html=True)
+    st.markdown("## 📊 Advanced Analysis Results")
     
     # Key metrics in columns
     col1, col2, col3, col4 = st.columns(4)
@@ -1774,7 +1678,7 @@ def show_advanced_results(results, product_data):
 def show_professional_compare_tab():
     """Professional comparison tab with statistical analysis"""
     
-    st.markdown('<div class="section-header">⚖️ Statistical Product Comparison</div>', unsafe_allow_html=True)
+    st.markdown("## ⚖️ Statistical Product Comparison")
     
     # Select products for comparison
     st.markdown("##### Select Products for Comparison")
@@ -1846,7 +1750,7 @@ def show_professional_compare_tab():
 def show_comparison_results(products, stats_results, metrics):
     """Display comparison results"""
     
-    st.markdown('<div class="section-header">📊 Comparison Results</div>', unsafe_allow_html=True)
+    st.markdown("## 📊 Comparison Results")
     
     # Summary metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -1961,7 +1865,7 @@ def show_comparison_results(products, stats_results, metrics):
             st.markdown(f"- {insight}")
     
     # Export options
-    st.markdown("---")
+    st.divider()
     st.markdown("##### 📤 Export Comparison")
     
     col1, col2, col3 = st.columns(3)
@@ -1981,7 +1885,7 @@ def show_comparison_results(products, stats_results, metrics):
 def show_professional_analytics_tab():
     """Professional analytics tab with comprehensive visualization"""
     
-    st.markdown('<div class="section-header">📈 Advanced Analytics</div>', unsafe_allow_html=True)
+    st.markdown("## 📈 Advanced Analytics")
     
     # Create demo analytics data
     analytics_data = create_analytics_data()
@@ -2377,53 +2281,37 @@ def show_benchmarking_analysis(data):
 def show_academic_tab():
     """Academic/research tab"""
     
-    st.markdown('<div class="section-header">🎓 Academic & Research Features</div>', unsafe_allow_html=True)
+    st.markdown("## 🎓 Academic & Research Features")
     
-    # Academic features in tiles
+    # Academic features
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
-        <div class="dashboard-tile">
-            <div class="tile-header">
-                <span style="font-size: 1.5rem;">📚</span>
-                <span>Methodology Library</span>
-            </div>
-            <p style="color: #6B7280;">
-            Access to academic LCA methodologies and databases:
-            </p>
-            <ul style="color: #4B5563; padding-left: 1rem;">
-                <li>Ecoinvent Database v3.8</li>
-                <li>USLCI Database</li>
-                <li>GREET Model</li>
-                <li>ISO 14040/44 Guidelines</li>
-                <li>PEF Methodology</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.container():
+            st.markdown("### 📚 Methodology Library")
+            st.markdown("Access to academic LCA methodologies and databases:")
+            st.markdown("""
+            - Ecoinvent Database v3.8
+            - USLCI Database
+            - GREET Model
+            - ISO 14040/44 Guidelines
+            - PEF Methodology
+            """)
     
     with col2:
-        st.markdown("""
-        <div class="dashboard-tile">
-            <div class="tile-header">
-                <span style="font-size: 1.5rem;">🔬</span>
-                <span>Research Tools</span>
-            </div>
-            <p style="color: #6B7280;">
-            Advanced tools for academic research:
-            </p>
-            <ul style="color: #4B5563; padding-left: 1rem;">
-                <li>Sensitivity Analysis</li>
-                <li>Monte Carlo Uncertainty</li>
-                <li>Scenario Modeling</li>
-                <li>Statistical Testing</li>
-                <li>Peer Review Templates</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.container():
+            st.markdown("### 🔬 Research Tools")
+            st.markdown("Advanced tools for academic research:")
+            st.markdown("""
+            - Sensitivity Analysis
+            - Monte Carlo Uncertainty
+            - Scenario Modeling
+            - Statistical Testing
+            - Peer Review Templates
+            """)
     
     # Publication-ready reports
-    st.markdown("##### 📄 Publication-Ready Outputs")
+    st.markdown("### 📄 Publication-Ready Outputs")
     
     with st.expander("Generate Academic Report"):
         col1, col2 = st.columns(2)
@@ -2454,7 +2342,7 @@ def show_academic_tab():
             st.info("📄 Report includes: Methodology description, statistical analysis, uncertainty quantification, and ISO compliance statement")
 
 # ============================================================================
-# MAIN APPLICATION FLOW - FIXED
+# MAIN APPLICATION FLOW
 # ============================================================================
 
 def main():
@@ -2469,11 +2357,8 @@ def main():
     current_workflow = st.session_state.current_workflow
     
     if current_workflow == "quick":
-        # Simplified quick assessment for now
-        st.info("Quick assessment workflow coming soon!")
-        if st.button("Back to Dashboard"):
-            st.session_state.current_workflow = None
-            st.rerun()
+        # Simplified quick assessment
+        show_quick_assessment()
     elif current_workflow == "detailed":
         show_professional_analyzer_tab()
     elif current_workflow == "compare":
@@ -2487,9 +2372,8 @@ def main():
         else:
             show_professional_dashboard()
     
-    # Enhanced sidebar - FIXED: Simplified to avoid formatting errors
+    # Sidebar
     with st.sidebar:
-        # Simple title without complex formatting
         st.markdown("### 🌍 EcoLens Pro")
         
         # Mode indicator
@@ -2573,9 +2457,109 @@ def main():
             st.session_state.onboarding_step = 0
             st.rerun()
 
+def show_quick_assessment():
+    """Show quick assessment workflow"""
+    st.markdown("## 🚀 Quick Product Assessment")
+    
+    st.markdown("### 1. Select Your Product Type")
+    product_type = st.selectbox(
+        "Choose from common products:",
+        ["Water Bottle (500ml)", "Packaging Box", "Electronics Case", 
+         "Furniture Component", "Automotive Part", "Custom Product"],
+        help="Select the product type closest to yours"
+    )
+    
+    if product_type == "Water Bottle (500ml)":
+        st.info("💡 **Typical specifications:** 150g Polypropylene, Injection molding, 2-year lifespan")
+    
+    st.markdown("### 2. Configure Your Product")
+    
+    with st.form("quick_config"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            material = st.selectbox(
+                "Primary Material",
+                ["Polypropylene (PP)", "Polyethylene Terephthalate (PET)", 
+                 "Aluminum", "Stainless Steel", "Glass", "Bamboo Composite"],
+                index=0
+            )
+            
+            mass_kg = st.number_input(
+                "Product Mass (kg)",
+                min_value=0.01,
+                max_value=50.0,
+                value=0.15,
+                step=0.01,
+                help="Enter the mass of your product in kilograms"
+            )
+        
+        with col2:
+            manufacturing_region = st.selectbox(
+                "Manufacturing Region",
+                ["Asia (China)", "Europe", "North America", "Global Average"],
+                help="Affects electricity grid carbon intensity"
+            )
+            
+            lifetime_years = st.slider(
+                "Expected Lifetime (years)",
+                1, 10, 2,
+                help="How long the product will be used"
+            )
+        
+        submitted = st.form_submit_button("🔬 Run Quick Analysis", type="primary")
+        
+        if submitted:
+            with st.spinner("Calculating environmental impacts..."):
+                time.sleep(2)
+                
+                # Simulate calculation
+                base_carbon = 2.4
+                results = {
+                    'carbon': round(base_carbon * (mass_kg / 0.15), 2),
+                    'energy': round(base_carbon * 35 * (mass_kg / 0.15), 1),
+                    'circularity': 0.72
+                }
+                
+                st.success("✅ Analysis complete!")
+                
+                # Show results
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Carbon Footprint", f"{results['carbon']} kg CO₂e")
+                with col2:
+                    st.metric("Energy Use", f"{results['energy']} MJ")
+                with col3:
+                    st.metric("Circularity", f"{results['circularity']}")
+                
+                # Recommendations
+                st.markdown("### 💡 Improvement Recommendations")
+                recommendations = [
+                    f"Switch to recycled {material.split('(')[0].strip()} (30% reduction potential)",
+                    "Optimize transport logistics (20% reduction potential)",
+                    "Design for longer lifespan (15% reduction per extra year)"
+                ]
+                
+                for i, rec in enumerate(recommendations):
+                    st.markdown(f"{i+1}. {rec}")
+                
+                # Save analysis
+                st.session_state.products.append({
+                    'name': product_type,
+                    'carbon': results['carbon'],
+                    'energy': results['energy'],
+                    'circularity': results['circularity'],
+                    'date': datetime.now().strftime('%Y-%m-%d')
+                })
+    
+    st.divider()
+    if st.button("← Back to Dashboard", use_container_width=True):
+        st.session_state.current_workflow = None
+        st.rerun()
+
 def show_all_analyses():
     """Show all analyses view"""
-    st.markdown('<h1 class="main-header">All Analyses</h1>', unsafe_allow_html=True)
+    st.markdown("## All Analyses")
     
     # Filter options
     col1, col2, col3, col4 = st.columns(4)
@@ -2614,15 +2598,11 @@ def show_all_analyses():
     elif sort_by == "Name":
         filtered_products.sort(key=lambda x: x['name'])
     
-    # Display products in grid
+    # Display products
     st.markdown(f"**Showing {len(filtered_products)} analyses**")
     
-    # Create columns for grid view
-    cols = st.columns(2)
-    
-    for i, product in enumerate(filtered_products):
-        with cols[i % 2]:
-            st.markdown(create_product_card(product), unsafe_allow_html=True)
+    for product in filtered_products:
+        display_product_card(product)
     
     # Back button
     if st.button("← Back to Dashboard", use_container_width=True):
